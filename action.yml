@@ -1,0 +1,9 @@
+name: Setup decK
+description: Install decK from Kong
+runs:
+  using: node12
+  main: dist/index.js
+inputs:
+  deck-version:
+    description: The version of decK to install
+    required: true
