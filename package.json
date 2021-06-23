@@ -21,6 +21,6 @@
     "semver": "^7.3.5"
   },
   "devDependencies": {
-    "jest": "^27.0.3"
+    "jest": "^27.0.5"
   }
 }
