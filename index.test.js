@@ -1,10 +1,13 @@
 const action = require("./index");
 const tc = require("@actions/tool-cache");
 const core = require("@actions/core");
+jest.mock("actions-output-wrapper");
+let createWrapper = require("actions-output-wrapper");
 
 let originalPlatform;
 beforeEach(() => {
   jest.spyOn(console, "log").mockImplementation();
+  createWrapper.mockClear();
   originalPlatform = process.platform;
 });
 
@@ -106,6 +109,34 @@ describe("install", () => {
     expect(tc.downloadTool).toBeCalledWith(
       `https://github.com/Kong/deck/releases/download/v1.7.0/deck_1.7.0_${os}_amd64.tar.gz`
     );
+  });
+});
+
+describe("wrapper", () => {
+  it("does not apply the wrapper by default", async () => {
+    process.env["INPUT_DECK-VERSION"] = "1.7.0";
+    process.env["INPUT_WRAPPER"] = "false";
+
+    setPlatform("linux");
+    mockToolIsInCache(true);
+    mockExtraction();
+
+    await action();
+
+    expect(createWrapper).toBeCalledTimes(0);
+  });
+
+  it("applies the wrapper when enabled", async () => {
+    process.env["INPUT_DECK-VERSION"] = "1.7.0";
+    process.env["INPUT_WRAPPER"] = "true";
+
+    setPlatform("linux");
+    mockToolIsInCache(true);
+    mockExtraction();
+
+    await action();
+
+    expect(createWrapper).toBeCalledTimes(1);
   });
 });
 

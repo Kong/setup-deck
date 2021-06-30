@@ -26,3 +26,28 @@ jobs:
           deck-version: 1.7.0
       - run: deck version
 ```
+
+## Capturing output
+
+If you need to capture the output for use in a later step, you can add a wrapper script which exposes `stdout`, `stderr` and `exitcode` by passing the `wrapper` input and setting it to `true`:
+
+```yaml
+steps:
+  - uses: kong/setup-deck@v1
+    with:
+      deck-version: 1.7.0
+      wrapper: true
+  - run: deck version
+    id: deck_version
+  - run: echo '${{ toJson(steps.deck_version.outputs) }}'
+```
+
+This would produce the following output:
+
+```json
+{
+  "exitcode": "0",
+  "stderr": "",
+  "stdout": "decK v1.7.0 (de1c830) \n"
+}
+```

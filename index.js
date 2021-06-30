@@ -1,6 +1,7 @@
 const tc = require("@actions/tool-cache");
 const core = require("@actions/core");
 const semver = require("semver");
+const createWrapper = require("actions-output-wrapper");
 
 async function action() {
   const version = core.getInput("deck-version", { required: true });
@@ -26,7 +27,11 @@ async function action() {
 
     deckDirectory = await tc.cacheDir(deckExtractedFolder, "deck", fullVersion);
   }
+
   core.addPath(deckDirectory);
+  if (core.getInput("wrapper") === "true") {
+    await createWrapper("deck");
+  }
 }
 
 function getPlatform(platform) {

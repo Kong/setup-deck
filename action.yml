@@ -7,3 +7,7 @@ inputs:
   deck-version:
     description: The version of decK to install
     required: true
+  wrapper:
+    description: Add a wrapper script to make stdout, stderr and errorcode available as outputs
+    default: "false"
+    required: false
