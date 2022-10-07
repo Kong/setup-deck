@@ -1,10 +1,28 @@
 const tc = require("@actions/tool-cache");
 const core = require("@actions/core");
+const github = require("@actions/github");
 const semver = require("semver");
 const createWrapper = require("actions-output-wrapper");
 
 async function action() {
-  const version = core.getInput("deck-version", { required: true });
+  let version = core.getInput("deck-version", { required: false });
+
+  if (!version) {
+    // Fetch the latest release version
+    const myToken = core.getInput("token");
+    const octokit = github.getOctokit(myToken);
+    const { data: releases } = await octokit.rest.repos.listReleases({
+      owner: "Kong",
+      repo: "deck",
+    });
+
+    if (!releases.length) {
+      throw new Error(`No releases found in kong/deck`);
+    }
+
+    version = releases[0].tag_name.replace(/^v/, "");
+  }
+
   const semverVersion = semver.valid(semver.coerce(version));
 
   if (!semverVersion) {

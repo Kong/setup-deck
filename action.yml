@@ -6,7 +6,11 @@ runs:
 inputs:
   deck-version:
     description: The version of decK to install
-    required: true
+    required: false
+  token:
+    description: The GitHub token to use when fetching the latest version of deck
+    default: ${{ secrets.GITHUB_TOKEN }}
+    required: false
   wrapper:
     description: Add a wrapper script to make stdout, stderr and errorcode available as outputs
     default: "false"
