@@ -2,12 +2,10 @@
 
 Install [decK](https://github.com/Kong/deck) so that it can be used in your GitHub Actions workflows
 
-Add the following to your `steps` definition:
+Add the following to your `steps` definition to install the latest version of `deck`:
 
 ```yaml
 - uses: kong/setup-deck@v1
-  with:
-    deck-version: 1.7.0
 ```
 
 ## Sample workflow
@@ -22,9 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: kong/setup-deck@v1
-        with:
-          deck-version: 1.7.0
       - run: deck version
+```
+
+You can also specific a specific version to install with the `deck-version` input:
+
+```yaml
+- uses: kong/setup-deck@v1
+  with:
+    deck-version: 1.7.0
 ```
 
 ## Capturing output

@@ -1,11 +1,24 @@
 const action = require("./index");
 const tc = require("@actions/tool-cache");
 const core = require("@actions/core");
+const mockEnv = require("mocked-env");
+
+const nock = require("nock");
+nock.disableNetConnect();
+
 jest.mock("actions-output-wrapper");
 let createWrapper = require("actions-output-wrapper");
 
 let originalPlatform;
+let restore;
+let restoreTest;
+
 beforeEach(() => {
+  restore = mockEnv({
+    INPUT_TOKEN: "this_token_is_not_used_due_to_mocks",
+  });
+  restoreTest = () => {};
+
   jest.spyOn(console, "log").mockImplementation();
   createWrapper.mockClear();
   originalPlatform = process.platform;
@@ -13,18 +26,68 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+  restore();
+  restoreTest();
+  if (!nock.isDone()) {
+    throw new Error(
+      `Not all nock interceptors were used: ${JSON.stringify(
+        nock.pendingMocks()
+      )}`
+    );
+  }
+  nock.cleanAll();
   setPlatform(originalPlatform);
 });
 
-describe("version parsing", () => {
-  it("throws when no version is provided", async () => {
-    expect(action).rejects.toThrow(
-      "Input required and not supplied: deck-version"
-    );
+describe("automatic version fetching", () => {
+  it("does not fetch when a version is provided", async () => {
+    // No call to nock(), so no HTTP traffic expected
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "3.2.1",
+    });
+    setPlatform("linux");
+    mockToolIsInCache(true);
+    mockExtraction();
+
+    await action();
+    expect(console.log).toBeCalledWith(`Installing decK version 3.2.1-linux`);
   });
 
+  it("fetches the latest version when no version is provided", async () => {
+    nock("https://api.github.com")
+      .get("/repos/Kong/deck/releases")
+      .reply(200, [
+        {
+          tag_name: "v3.2.1",
+        },
+      ]);
+
+    setPlatform("linux");
+    mockToolIsInCache(true);
+    mockExtraction();
+
+    await action();
+    expect(console.log).toBeCalledWith(`Installing decK version 3.2.1-linux`);
+  });
+
+  it("fails when there are no releases and no specific version is provided", async () => {
+    nock("https://api.github.com")
+      .get("/repos/Kong/deck/releases")
+      .reply(200, []);
+
+    try {
+      await action();
+    } catch (e) {
+      expect(e.message).toBe("No releases found in kong/deck");
+    }
+  });
+});
+
+describe("version parsing", () => {
   it("throws when an invalid version is provided", async () => {
-    process.env["INPUT_DECK-VERSION"] = "banana";
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "banana",
+    });
     expect(action).rejects.toThrow("Invalid version provided: 'banana'");
   });
 
@@ -39,7 +102,9 @@ describe("version parsing", () => {
   test.each(cases)(
     `accepts a valid semver input (%s)`,
     async (version, expected) => {
-      process.env["INPUT_DECK-VERSION"] = version;
+      restoreTest = mockEnv({
+        "INPUT_DECK-VERSION": version,
+      });
 
       setPlatform("linux");
       mockToolIsInCache(true);
@@ -55,7 +120,10 @@ describe("version parsing", () => {
 
 describe("install", () => {
   it("does not download if the file is in the cache", async () => {
-    process.env["INPUT_DECK-VERSION"] = "1.7.0";
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+    });
+
     jest.spyOn(core, "addPath");
     jest.spyOn(tc, "downloadTool");
 
@@ -70,7 +138,9 @@ describe("install", () => {
   });
 
   it("downloads if it is not in the cache", async () => {
-    process.env["INPUT_DECK-VERSION"] = "1.7.0";
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+    });
 
     setPlatform("linux");
     mockToolIsInCache(false);
@@ -97,7 +167,9 @@ describe("install", () => {
   ];
 
   test.each(osCases)("downloads correctly for %s", async (platform, os) => {
-    process.env["INPUT_DECK-VERSION"] = "1.7";
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+    });
 
     setPlatform(platform);
     mockToolIsInCache(false);
@@ -114,8 +186,10 @@ describe("install", () => {
 
 describe("wrapper", () => {
   it("does not apply the wrapper by default", async () => {
-    process.env["INPUT_DECK-VERSION"] = "1.7.0";
-    process.env["INPUT_WRAPPER"] = "false";
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+      INPUT_WRAPPER: "false",
+    });
 
     setPlatform("linux");
     mockToolIsInCache(true);
@@ -127,8 +201,10 @@ describe("wrapper", () => {
   });
 
   it("applies the wrapper when enabled", async () => {
-    process.env["INPUT_DECK-VERSION"] = "1.7.0";
-    process.env["INPUT_WRAPPER"] = "true";
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+      INPUT_WRAPPER: "true",
+    });
 
     setPlatform("linux");
     mockToolIsInCache(true);
