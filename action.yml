@@ -9,7 +9,7 @@ inputs:
     required: false
   token:
     description: The GitHub token to use when fetching the latest version of deck
-    default: ${{ secrets.GITHUB_TOKEN }}
+    default: ${{ github.token }}
     required: false
   wrapper:
     description: Add a wrapper script to make stdout, stderr and errorcode available as outputs
