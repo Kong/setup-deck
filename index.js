@@ -25,7 +25,7 @@ async function action() {
         continue;
       }
       
-      version = releases[0].tag_name.replace(/^v/, "");
+      version = releases[i].tag_name.replace(/^v/, "");
       break;
     }
     
