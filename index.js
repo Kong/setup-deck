@@ -19,8 +19,19 @@ async function action() {
     if (!releases.length) {
       throw new Error(`No releases found in kong/deck`);
     }
-
-    version = releases[0].tag_name.replace(/^v/, "");
+    
+    for(let i=0; i < releases.length; i++) {
+      if(releases[i].prerelease) {
+        continue;
+      }
+      
+      version = releases[i].tag_name.replace(/^v/, "");
+      break;
+    }
+    
+    if (!version) {
+      throw new Error(`No releases (excluding prereleases) found in kong/deck`);
+    }
   }
 
   const semverVersion = semver.valid(semver.coerce(version));
