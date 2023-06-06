@@ -182,6 +182,29 @@ describe("install", () => {
       `https://github.com/Kong/deck/releases/download/v1.7.0/deck_1.7.0_${os}_amd64.tar.gz`
     );
   });
+
+  const archCases = [
+    ["x64", "amd64"],
+    ["arm64", "arm64"],
+  ];
+
+  test.each(archCases)("downloads correctly for %s", async (node_arch, arch) => {
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+    });
+
+    setPlatform("linux");
+    setArch(node_arch);
+    mockToolIsInCache(false);
+    mockTcDownload();
+    mockExtraction();
+
+    await action();
+
+    expect(tc.downloadTool).toBeCalledWith(
+      `https://github.com/Kong/deck/releases/download/v1.7.0/deck_1.7.0_linux_${arch}.tar.gz`
+    );
+  });
 });
 
 describe("wrapper", () => {
@@ -224,6 +247,12 @@ function mockToolIsInCache(exists) {
 function setPlatform(platform) {
   Object.defineProperty(process, "platform", {
     value: platform,
+  });
+}
+
+function setArch(arch) {
+  Object.defineProperty(process, "arch", {
+    value: arch,
   });
 }
 

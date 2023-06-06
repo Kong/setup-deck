@@ -41,12 +41,14 @@ async function action() {
   }
 
   let os = getPlatform(process.platform);
+  let arch = getArch(process.arch);
+
   const fullVersion = `${semverVersion}-${os}`;
-  console.log(`Installing decK version ${fullVersion}`);
+  console.log(`Installing decK version ${fullVersion} for ${arch}`);
 
   let deckDirectory = tc.find("deck", fullVersion);
   if (!deckDirectory) {
-    const versionUrl = `https://github.com/Kong/deck/releases/download/v${semverVersion}/deck_${semverVersion}_${os}_amd64.tar.gz`;
+    const versionUrl = `https://github.com/Kong/deck/releases/download/v${semverVersion}/deck_${semverVersion}_${os}_${arch}.tar.gz`;
     const deckPath = await tc.downloadTool(versionUrl);
 
     const deckExtractedFolder = await tc.extractTar(
@@ -75,6 +77,14 @@ function getPlatform(platform) {
   }
 
   return "linux";
+}
+
+function getArch(arch) {
+  if (process.arch === "x64") {
+    return "amd64";
+  }
+
+  return process.arch;
 }
 
 if (require.main === module) {
