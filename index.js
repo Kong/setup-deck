@@ -44,7 +44,7 @@ async function action() {
   let arch = getArch(process.arch);
 
   const fullVersion = `${semverVersion}-${os}`;
-  console.log(`Installing decK version ${fullVersion} for ${arch}`);
+  console.log(`Installing decK version ${fullVersion}`);
 
   let deckDirectory = tc.find("deck", fullVersion);
   if (!deckDirectory) {
