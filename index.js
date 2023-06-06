@@ -19,16 +19,16 @@ async function action() {
     if (!releases.length) {
       throw new Error(`No releases found in kong/deck`);
     }
-    
+
     for(let i=0; i < releases.length; i++) {
       if(releases[i].prerelease) {
         continue;
       }
-      
+
       version = releases[i].tag_name.replace(/^v/, "");
       break;
     }
-    
+
     if (!version) {
       throw new Error(`No releases (excluding prereleases) found in kong/deck`);
     }
