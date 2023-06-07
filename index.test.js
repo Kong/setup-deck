@@ -10,6 +10,7 @@ jest.mock("actions-output-wrapper");
 let createWrapper = require("actions-output-wrapper");
 
 let originalPlatform;
+let originalArch;
 let restore;
 let restoreTest;
 
@@ -22,6 +23,7 @@ beforeEach(() => {
   jest.spyOn(console, "log").mockImplementation();
   createWrapper.mockClear();
   originalPlatform = process.platform;
+  originalArch = process.arch;
 });
 
 afterEach(() => {
@@ -37,6 +39,7 @@ afterEach(() => {
   }
   nock.cleanAll();
   setPlatform(originalPlatform);
+  setArch(originalArch);
 });
 
 describe("automatic version fetching", () => {
@@ -143,6 +146,7 @@ describe("install", () => {
     });
 
     setPlatform("linux");
+    setArch("amd64");
     mockToolIsInCache(false);
     mockTcDownload();
     mockExtraction();
@@ -172,6 +176,7 @@ describe("install", () => {
     });
 
     setPlatform(platform);
+    setArch("amd64");
     mockToolIsInCache(false);
     mockTcDownload();
     mockExtraction();
