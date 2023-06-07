@@ -10,6 +10,7 @@ jest.mock("actions-output-wrapper");
 let createWrapper = require("actions-output-wrapper");
 
 let originalPlatform;
+let originalArch;
 let restore;
 let restoreTest;
 
@@ -22,6 +23,7 @@ beforeEach(() => {
   jest.spyOn(console, "log").mockImplementation();
   createWrapper.mockClear();
   originalPlatform = process.platform;
+  originalArch = process.arch;
 });
 
 afterEach(() => {
@@ -37,6 +39,7 @@ afterEach(() => {
   }
   nock.cleanAll();
   setPlatform(originalPlatform);
+  setArch(originalArch);
 });
 
 describe("automatic version fetching", () => {
@@ -143,6 +146,7 @@ describe("install", () => {
     });
 
     setPlatform("linux");
+    setArch("amd64");
     mockToolIsInCache(false);
     mockTcDownload();
     mockExtraction();
@@ -172,6 +176,7 @@ describe("install", () => {
     });
 
     setPlatform(platform);
+    setArch("amd64");
     mockToolIsInCache(false);
     mockTcDownload();
     mockExtraction();
@@ -180,6 +185,29 @@ describe("install", () => {
 
     expect(tc.downloadTool).toBeCalledWith(
       `https://github.com/Kong/deck/releases/download/v1.7.0/deck_1.7.0_${os}_amd64.tar.gz`
+    );
+  });
+
+  const archCases = [
+    ["x64", "amd64"],
+    ["arm64", "arm64"],
+  ];
+
+  test.each(archCases)("downloads correctly for %s", async (node_arch, arch) => {
+    restoreTest = mockEnv({
+      "INPUT_DECK-VERSION": "1.7.0",
+    });
+
+    setPlatform("linux");
+    setArch(node_arch);
+    mockToolIsInCache(false);
+    mockTcDownload();
+    mockExtraction();
+
+    await action();
+
+    expect(tc.downloadTool).toBeCalledWith(
+      `https://github.com/Kong/deck/releases/download/v1.7.0/deck_1.7.0_linux_${arch}.tar.gz`
     );
   });
 });
@@ -224,6 +252,12 @@ function mockToolIsInCache(exists) {
 function setPlatform(platform) {
   Object.defineProperty(process, "platform", {
     value: platform,
+  });
+}
+
+function setArch(arch) {
+  Object.defineProperty(process, "arch", {
+    value: arch,
   });
 }
 

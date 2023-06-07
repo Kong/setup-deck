@@ -19,16 +19,16 @@ async function action() {
     if (!releases.length) {
       throw new Error(`No releases found in kong/deck`);
     }
-    
+
     for(let i=0; i < releases.length; i++) {
       if(releases[i].prerelease) {
         continue;
       }
-      
+
       version = releases[i].tag_name.replace(/^v/, "");
       break;
     }
-    
+
     if (!version) {
       throw new Error(`No releases (excluding prereleases) found in kong/deck`);
     }
@@ -41,12 +41,14 @@ async function action() {
   }
 
   let os = getPlatform(process.platform);
+  let arch = getArch(process.arch);
+
   const fullVersion = `${semverVersion}-${os}`;
   console.log(`Installing decK version ${fullVersion}`);
 
   let deckDirectory = tc.find("deck", fullVersion);
   if (!deckDirectory) {
-    const versionUrl = `https://github.com/Kong/deck/releases/download/v${semverVersion}/deck_${semverVersion}_${os}_amd64.tar.gz`;
+    const versionUrl = `https://github.com/Kong/deck/releases/download/v${semverVersion}/deck_${semverVersion}_${os}_${arch}.tar.gz`;
     const deckPath = await tc.downloadTool(versionUrl);
 
     const deckExtractedFolder = await tc.extractTar(
@@ -75,6 +77,14 @@ function getPlatform(platform) {
   }
 
   return "linux";
+}
+
+function getArch(arch) {
+  if (process.arch === "x64") {
+    return "amd64";
+  }
+
+  return process.arch;
 }
 
 if (require.main === module) {
