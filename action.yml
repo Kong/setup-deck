@@ -1,7 +1,7 @@
 name: Setup decK
 description: Install decK from Kong
 runs:
-  using: node12
+  using: node20
   main: dist/index.js
 inputs:
   deck-version:
@@ -12,6 +12,8 @@ inputs:
     default: ${{ github.token }}
     required: false
   wrapper:
-    description: Add a wrapper script to make stdout, stderr and errorcode available as outputs
-    default: "false"
+    description: >-
+      Add a wrapper script to make stdout, stderr and errorcode available as
+      outputs
+    default: 'false'
     required: false
